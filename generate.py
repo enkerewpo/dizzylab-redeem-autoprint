@@ -94,20 +94,45 @@ def create_redeem_cards(config):
     # Filter out skipped rows first
     valid_rows = []
     skipped_count = 0
-    for _, row in df.iterrows():
+    previously_redeemed_count = 0
+    
+    for index, row in df.iterrows():
+            
+        skip_flag = False
+            
+        # Skip if second column has any value (previously redeemed)
+        if len(columns) > 1 and pd.notna(row[columns[1]]) and str(row[columns[1]]).strip() != "":
+            try:
+                user_id = int(float(str(row[columns[1]]).strip()))
+                print(f"Skipping row {index + 2}: Previously redeemed (id: {user_id})")
+            except ValueError:
+                print(f"Skipping row {index + 2}: Previously redeemed (id: {row[columns[1]]})")
+            previously_redeemed_count += 1
+            skip_flag = True
+        
+        # Skip if marked as skip in fourth column
         if len(columns) > 3 and str(row[columns[3]]) == "skip":
+            print(f"Skipping row {index + 2}: Marked as skip")
             skipped_count += 1
+            skip_flag = True
+            # continue
+            
+        if skip_flag:
             continue
+            
         valid_rows.append(row)
     
     # Calculate total number of cards needed
     total_cards = len(valid_rows)
-    total_pages = (total_cards + grid_cols * grid_rows - 1) // (grid_cols * grid_rows)
+    cards_per_page = grid_cols * grid_rows
+    total_pages = (total_cards + cards_per_page - 1) // cards_per_page
     
     print(f"Total rows in Excel: {len(df)}")
-    print(f"Skipped rows: {skipped_count}")
+    print(f"Skipped rows (marked as skip): {skipped_count}")
+    print(f"Skipped rows (previously redeemed): {previously_redeemed_count}")
     print(f"Valid redeem codes: {total_cards}")
-    print(f"Generated PDF pages: {total_pages}")
+    print(f"Cards per page: {cards_per_page} ({grid_cols}x{grid_rows})")
+    print(f"Total pages: {total_pages}")
     
     cards = []
     for row in valid_rows:
@@ -132,19 +157,28 @@ def create_redeem_cards(config):
     for i in range(0, len(cards), grid_cols * grid_rows):
         page_cards = cards[i:i + grid_cols * grid_rows]
         grid_data = []
-        for j in range(0, len(page_cards), grid_cols):
+        
+        # Calculate how many complete rows we need for this page
+        cards_on_this_page = len(page_cards)
+        complete_rows = (cards_on_this_page + grid_cols - 1) // grid_cols
+        
+        for j in range(0, cards_on_this_page, grid_cols):
             row = page_cards[j:j + grid_cols]
-            while len(row) < grid_cols:
-                row.append(Paragraph("", basestyle))
+            # Only fill remaining cells in the last row if needed
+            if j // grid_cols == complete_rows - 1:
+                while len(row) < grid_cols:
+                    row.append(Paragraph("", basestyle))
             grid_data.append(row)
         
-        while len(grid_data) < grid_rows:
-            grid_data.append([Paragraph("", basestyle)] * grid_cols)
+        # Don't add empty rows if we're on the last page
+        if i + grid_cols * grid_rows < len(cards):
+            while len(grid_data) < grid_rows:
+                grid_data.append([Paragraph("", basestyle)] * grid_cols)
         
         table = Table(
             grid_data,
             colWidths=[card_width*cm]*grid_cols,
-            rowHeights=[card_height*cm]*grid_rows
+            rowHeights=[card_height*cm]*len(grid_data)  # Only use as many rows as we have data
         )
         
         table.setStyle(TableStyle([
@@ -175,3 +209,8 @@ if __name__ == "__main__":
     config = load_config(config_file)
     create_redeem_cards(config)
     print(f"PDF generated successfully: {config['output']['pdf_file']}") 
+    # print actual pages
+    # read pdf file and count pages
+    from PyPDF2 import PdfReader
+    reader = PdfReader(config['output']['pdf_file'])
+    print(f"Actual PDF pages: {len(reader.pages)}")
