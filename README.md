@@ -17,7 +17,7 @@
 
 ### 1. 准备 Excel 文件
 
-如果从 Dizzylab 下载的是 CSV 文件，需要先转换为 XLSX 格式：
+从 Dizzylab 下载的是 CSV 文件，需要先转换为 XLSX 格式：
 
 1. 使用 Excel 打开 CSV 文件
 2. 点击"文件" -> "另存为"
