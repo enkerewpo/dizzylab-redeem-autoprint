@@ -37,6 +37,7 @@ ENV/
 *.xls
 *.ttf
 !SFMono-Regular.ttf
+config.yml
 
 # OS specific
 .DS_Store
