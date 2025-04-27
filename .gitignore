@@ -35,9 +35,7 @@ ENV/
 *.pdf
 *.xlsx
 *.xls
-*.ttf
-!SFMono-Regular.ttf
-config.yml
+# config.yml
 
 # OS specific
 .DS_Store
@@ -47,3 +45,7 @@ config.yml
 .Trashes
 ehthumbs.db
 Thumbs.db 
+
+background.png
+*.png
+cache
