@@ -1,75 +1,82 @@
-# Dizzylab 兑换码卡片生成器
+# Dizzylab Redeem Card Print Generator
 
-这个工具可以从包含兑换码的 Excel 文件中生成可打印的 Dizzylab 平台兑换卡片。
+wheatfox (wheatfox17@icloud.com)
 
-## 环境要求
+一个用于生成 dizzylab 兑换码卡片的工具，支持自定义背景、logo和布局。
 
-- Python 3.x
+## 功能特点
 
-## 安装步骤
+- 支持从Excel文件读取兑换码（请先把 dizzylab 导出的 csv 另存为 xlsx 文件，用于只有在第 4 列之后进行额外标记）
+- 支持自定义背景图片（自动处理为勾线效果）
+- 支持自定义个人logo（自动处理为勾线效果）
+- 支持自定义卡片布局和样式
+- 自动跳过已兑换的码（在第 4 列对应行标记 "skip" 即可）
+- 支持缓存处理后的图片
 
-1. 安装必需的 Python 包：
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 安装依赖
 
-## 使用步骤
-
-### 1. 准备 Excel 文件
-
-从 Dizzylab 下载的是 CSV 文件，需要先转换为 XLSX 格式：
-
-1. 使用 Excel 打开 CSV 文件
-2. 点击"文件" -> "另存为"
-3. 选择保存类型为"Excel 工作簿 (*.xlsx)"
-4. 保存文件
-
-### 2. 创建配置文件
-
-创建一个 `config.yml` 文件，结构如下：
-
-```yaml
-# 输入文件配置
-input:
-  excel_file: "path/to/your/input.xlsx"  # 输入的Excel文件路径
-
-# 输出文件配置
-output:
-  pdf_file: "output.pdf"     # 输出的PDF文件路径
-
-# 卡片内容配置
-card:
-  album_name: "专辑名称"
-  additional_info:           # 额外信息，每行一个
-    - "这里是额外信息1"
-    - "这里是额外信息2"
-    - "兑换网址: https://www.dizzylab.net/redeem"
-
-# 布局配置
-layout:
-  grid:
-    columns: 3              # 每行卡片数量
-    rows: 4                 # 每页行数
-  card:
-    width: 6               # 卡片宽度(cm)
-    height: 4              # 卡片高度(cm)
-    margin: 1              # 页面边距(cm)
-    font_size: 10          # 字体大小
+```bash
+pip install -r requirements.txt
 ```
 
-### 3. 运行脚本
+## 使用方法
 
-1. 打开终端，进入脚本所在目录
-2. 运行以下命令：
-   ```bash
-   python generate.py config.yml
+1. 准备Excel文件，格式如下：
+   - 第一列：兑换码
+   - 第二列：用户ID（已兑换的码）
+   - 第三列：制品号
+   - 第四列：skip标记（可选）
+
+2. 准备配置文件 `config.yml`：
+   ```yaml
+   input:
+     excel_file: "your_excel_file.xlsx"
+
+   output:
+     pdf_file: "output.pdf"
+
+   card:
+     album_name: "专辑名称"
+     additional_info:
+       - "兑换网址: https://www.dizzylab.net/redeem"
+     background: "background.jpg"  # 背景图片路径
+     personal_logo: "personal_logo.png"  # 个人logo路径
+
+   layout:
+     grid:
+       columns: 2  # 每行卡片数量
+       rows: 5    # 每页行数
+     card:
+       width: 8   # 卡片宽度(cm)
+       height: 5  # 卡片高度(cm)
+       margin: 0.5  # 页面边距(cm)
+       font_size: 10  # 字体大小
    ```
+
+3. 运行生成器：
+   ```bash
+   python3 generate.py config.yml
+   ```
+
+## 目录结构
+
+```
+.
+├── generate.py          # 主程序
+├── config.yml          # 配置文件
+├── requirements.txt    # 依赖列表
+├── fonts/             # 字体目录
+│   ├── NotoSansSC-SemiBold.ttf
+│   └── SFMono-Regular.ttf
+├── logo/              # logo目录
+│   └── dl-n-88_2.jpg
+└── cache/             # 图片缓存目录
+```
 
 ## 注意事项
 
-Excel 文件除了 dizzylab 导出时的默认三列外，第四列可以用于标记跳过.
-
-## TODO
-
-1. 中文字体优化，现在用的是 PDF 自带的 Adobe 宋体（自带的只有宋体），但是 reportlab 导入 TTF 中文字体总是有问题
-2. 排版优化（？）
+1. 确保Excel文件格式正确
+2. 背景图片和个人logo会自动处理为勾线效果
+3. 处理后的图片会缓存在cache目录
+4. 已兑换的码会自动跳过
+5. 支持自定义卡片布局和样式
